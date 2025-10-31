@@ -1,0 +1,162 @@
+\documentclass[12pt]{article}
+\usepackage[russian]{babel}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage [left=30 mm, top=15 mm, right=30 mm, bottom=20mm, nohead, footskip=10 mm] {geometry}
+
+\parindent=24pt
+
+\begin{document}
+	\input{title}	
+	
+	
+	\thispagestyle{empty}
+	\newpage
+	\tableofcontents
+	
+	
+	
+	\newpage
+	\section{Постановка задачи}
+	
+	\par В рамках курсовой работы необходимо разработать программное решение, направленное на автоматизированное извлечение, хранение и управление метаданными баз данных.
+	
+	\begin{enumerate}
+		\item Предусмотреть возможность подключения и работы с несколькими базами данных MySQL, содержащими произвольные структуры таблиц и данных.
+		\item Разработать и реализовать схему базы данных для хранения метаданных, включающую информацию о:
+		\begin{itemize}
+			\item серверах баз данных,
+			\item самих базах данных,
+			\item таблицах,
+			\item сущностях,
+			\item ключах.
+		\end{itemize}
+		\item Реализовать механизм автоматизированной выгрузки метаданных из подключаемых баз данных и сохранения их в разработанную базу.
+		\item Реализовать интерфейс, позволяющий пользователю получать статистическую информацию на основе базы метаданных, такую как:
+		\begin{itemize}
+			\item общее количество подключённых баз данных,
+			\item количество таблиц в каждой базе,
+			\item количество столбцов, ключей и других структурных элементов,
+			\item другие показатели, связанные со структурой и организацией данных.
+		\end{itemize}
+	\end{enumerate}
+
+	\newpage
+	\section{Схема хранилища}
+	\subsection{Таблицы базы данных}
+	
+	\par{\bfБаза данных}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & db\_id & INT & PK & - \\
+			\hline
+			2 & db\_name & VARCHAR(64) & UNIQUE & - \\
+			\hline
+		\end{tabular}
+		\caption{Сущность База данных (Db)}
+	\end{table}
+	
+	\par{\bfТаблица}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & table\_id & INT & PK & - \\
+			\hline
+			2 & table\_name & VARCHAR(64) & - & - \\
+			\hline
+			3 & db\_id & INT & FK & Db(db\_id) \\
+			\hline
+		\end{tabular}
+		\caption{Сущность Таблица (Db\_table)}
+	\end{table}
+	
+	\par{\bfКолонка}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & column\_id & INT & PK & - \\
+			\hline
+			2 & column\_name & VARCHAR(64) & - & - \\
+			\hline
+			3 & table\_id & INT & FK & Db\_table(table\_id) \\
+			\hline
+		\end{tabular}
+		\caption{Сущность Колонка (Db\_column)}
+	\end{table}
+	
+	\newpage
+	\par{\bfКлюч}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & constraint\_id & INT & PK & - \\
+			\hline
+			2 & constraint\_name & VARCHAR(64) & - & - \\
+			\hline
+			3 & type & ENUM & - & - \\
+			\hline
+			4 & column\_id & INT & FK & Column(column\_id) \\
+			\hline
+		\end{tabular}
+		\caption{Сущность Ключ (Constraint)}
+	\end{table}
+	
+	\par{\bfКлюч-колонка}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & constraint\_column\_id & INT & PK & - \\
+			\hline
+			2 & position & INT & - & - \\
+			\hline
+			3 & constraint\_id & INT & FK & Constraint(constraint\_id) \\
+			\hline
+			4 & column\_id & INT & FK & Column(column\_id) \\
+			\hline
+		\end{tabular}
+		\caption{Сущность Ключ-колонка (Constraint\_column)}
+	\end{table}
+	
+	\par{\bfВнешний ключ}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			№ & Название & Тип & Тип ключа & Ссылка \\
+			\hline
+			1 & rc\_id & INT & PK & - \\
+			\hline
+			2 & fk\_constraint\_id & INT & FK & Constraint(constraint\_id) \\
+			\hline
+			3 & pk\_constraint\_id & INT & FK & Constraint(constraint\_id) \\
+			\hline
+		\end{tabular}
+		\caption{Сущность Внешний ключ (Referential\_constraint)}
+	\end{table}
+	
+	\newpage
+	\begin{figure}
+ 	 	\includegraphics[width=\linewidth]{db_structure}
+  		\caption{Структурная схема хранилища метаданных.}
+  		\label{fig:db_structure}
+	\end{figure}
+	
+
+	
+\end{document}
