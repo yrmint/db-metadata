@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import dbs_router, stats_router
+from backend.routers import dbs_router, stats_router, metadata_router
 
 app = FastAPI(debug=True)
 
@@ -20,6 +20,7 @@ app.add_middleware(
 
 app.include_router(dbs_router.router)
 app.include_router(stats_router.router)
+app.include_router(metadata_router.router)
 
 
 if __name__ == "__main__":
