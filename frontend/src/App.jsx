@@ -1,4 +1,4 @@
-import DatabaseList from "./components/Databases";
+import DatabaseList from "./components/Index";
 
 const App = () => {
   return (
@@ -7,10 +7,10 @@ const App = () => {
         <h1>Databases Statistics</h1>
       </header>
       <main>
-        <DatabaseList/>
+        <DatabaseList />
       </main>
     </div>
-  )
+  );
 };
 
 export default App;
