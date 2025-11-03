@@ -43,6 +43,33 @@ a:hover {
   color: darkred;
 }
 
+.stats-table {
+  border-collapse: collapse;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 400px;
+  background-color: #fafafa20;
+  border: 1px solid #ddd;
+}
+
+.stats-table td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+}
+
+.stats-table tr:nth-child(even) {
+  background-color: #fafafa10;
+}
+
+.stats-table tr:hover {
+  background-color: #fafafa30;
+}
+
+.stats-table td:first-child {
+  font-weight: bold;
+  width: 60%;
+}
+
 body {
   margin: 0;
   display: flex;
@@ -62,6 +89,7 @@ button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
+  margin-right: 8px;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -75,17 +103,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }

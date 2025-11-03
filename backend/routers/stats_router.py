@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from backend.models.stats_model import StatCount
 from backend.services.stats_service import (get_table_count_by_db, get_column_count_by_db, get_primary_key_count_by_db,
-                                            get_foreign_key_count_by_db, get_unique_key_count_by_db)
+                                            get_foreign_key_count_by_db, get_unique_key_count_by_db,
+                                            get_record_count_by_db)
 
 router = APIRouter(tags=["Statistics"])
 
@@ -52,5 +53,15 @@ def get_uk_count(db_id: int):
     """
     try:
         return get_unique_key_count_by_db(db_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/databases/{db_id}/records/count", response_model=StatCount)
+def get_record_count(db_id: int):
+    """
+     Returns number of records in specified database (using db_id).
+    """
+    try:
+        return get_record_count_by_db(db_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

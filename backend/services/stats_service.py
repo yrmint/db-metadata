@@ -120,3 +120,51 @@ def get_unique_key_count_by_db(db_id: int):
 
     count = row["key_count"] if row and "key_count" in row else 0
     return StatCount(db_id=db_id, count=count)
+
+def get_record_count_by_db(db_id: int) -> StatCount:
+    """
+    Returns the total number of records (rows) across all tables in the database with the provided db_id.
+    """
+    # get db name
+    meta_conn = get_connection()
+    meta_cursor = meta_conn.cursor(dictionary=True)
+
+    meta_cursor.execute("SELECT db_name FROM dbs WHERE db_id = %s;", (db_id,))
+    db_row = meta_cursor.fetchone()
+
+    if not db_row:
+        meta_cursor.close()
+        meta_conn.close()
+        return StatCount(db_id=db_id, count=0)
+
+    db_name = db_row["db_name"]
+
+    # get list of tables
+    meta_cursor.execute("SELECT table_name FROM db_tables WHERE db_id = %s;", (db_id,))
+    tables = [row["table_name"] for row in meta_cursor.fetchall()]
+
+    meta_cursor.close()
+    meta_conn.close()
+
+    if not tables:
+        return StatCount(db_id=db_id, count=0)
+
+    # connect to db and count
+    total_records = 0
+    db_conn = get_connection(db_name)
+    db_cursor = db_conn.cursor()
+
+    for table in tables:
+        try:
+            db_cursor.execute(f"SELECT COUNT(*) FROM `{table}`;")
+            (count,) = db_cursor.fetchone()
+            total_records += count
+        except Exception as e:
+            # ignore if no table/access
+            print(f"Warning: couldn't count rows in table {table}: {e}")
+            continue
+
+    db_cursor.close()
+    db_conn.close()
+
+    return StatCount(db_id=db_id, count=total_records)
