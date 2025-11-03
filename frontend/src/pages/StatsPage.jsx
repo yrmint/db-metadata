@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import DatabaseSelector from "./DatabaseSelector";
-import DatabaseStats from "./DatabaseStats";
+import DatabaseSelector from "../components/DatabaseSelector";
+import DatabaseStats from "../components/DatabaseStats";
 
-const DatabaseList = () => {
+const StatsPage = () => {
   const [databases, setDatabases] = useState([]);
   const [selectedDb, setSelectedDb] = useState(null);
   const [tableCount, setTableCount] = useState(null);
@@ -35,19 +35,22 @@ const DatabaseList = () => {
   };
 
   return (
-    <div className="database-container">
-      <DatabaseSelector
-        databases={databases}
-        selectedDb={selectedDb}
-        onSelect={handleSelectChange}
-      />
-      <DatabaseStats
-        loading={loading}
-        tableCount={tableCount}
-        selectedDb={selectedDb}
-      />
+    <div>
+        <h2 className="text-2xl font-semibold">Statistics</h2>
+            <div className="database-container">
+            <DatabaseSelector
+                databases={databases}
+                selectedDb={selectedDb}
+                onSelect={handleSelectChange}
+            />
+            <DatabaseStats
+                loading={loading}
+                tableCount={tableCount}
+                selectedDb={selectedDb}
+            />
+        </div>
     </div>
   );
 };
 
-export default DatabaseList;
+export default StatsPage;
