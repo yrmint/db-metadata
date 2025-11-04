@@ -1,45 +1,60 @@
 import React from "react";
 
-const DatabaseStats = ({ loading, tableCount, columnCount, pkCount, fkCount, ukCount, recordCount, selectedDb }) => {
+const DatabaseStats = ({
+  loading,
+  tableCount,
+  columnCount,
+  pkCount,
+  fkCount,
+  ukCount,
+  recordCount,
+  selectedDb,
+  selectedStats,
+}) => {
   if (!selectedDb) return null;
+
+  const rows = [];
+
+  if (selectedStats.tables)
+    rows.push(["Tables count", tableCount]);
+  if (selectedStats.columns)
+    rows.push(["Columns count", columnCount]);
+  if (selectedStats.pk)
+    rows.push(["Primary keys count", pkCount]);
+  if (selectedStats.fk)
+    rows.push(["Foreign keys count", fkCount]);
+  if (selectedStats.uk)
+    rows.push(["Unique keys count", ukCount]);
+  if (selectedStats.records)
+    rows.push(["Records count", recordCount]);
 
   return (
     <div className="db-stats">
       {loading && <p>Loading...</p>}
 
-      {!loading && tableCount !== null && (
-        <table className="stats-table">
+      {!loading && rows.length > 0 && (
+        <table
+          className="stats-table"
+          >
           <tbody>
-            <tr>
-              <td><strong>Tables count:</strong></td>
-              <td>{tableCount}</td>
-            </tr>
-            <tr>
-              <td><strong>Columns count:</strong></td>
-              <td>{columnCount}</td>
-            </tr>
-            <tr>
-              <td><strong>Primary keys count:</strong></td>
-              <td>{pkCount}</td>
-            </tr>
-            <tr>
-              <td><strong>Foreign keys count:</strong></td>
-              <td>{fkCount}</td>
-            </tr>
-            <tr>
-              <td><strong>Unique keys count:</strong></td>
-              <td>{ukCount}</td>
-            </tr>
-            <tr>
-              <td><strong>Records count:</strong></td>
-              <td>{recordCount}</td>
-            </tr>
+            {rows.map(([label, value]) => (
+              <tr key={label}>
+                <td>
+                  {label}
+                </td>
+                <td>
+                  {value !== null ? value : "-"}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
 
-      {!loading && tableCount === null && (
-        <p style={{ color: "red" }}>Failed to load data.</p>
+      {!loading && rows.length === 0 && (
+        <p style={{ color: "gray" }}>
+          No statistics selected.
+        </p>
       )}
     </div>
   );

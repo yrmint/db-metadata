@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api";
 import DatabaseSelector from "../components/DatabaseSelector";
 import DatabaseStats from "../components/DatabaseStats";
+import StatsSelector from "../components/StatsSelector";
 
 const StatsPage = () => {
   const [databases, setDatabases] = useState([]);
@@ -14,127 +15,155 @@ const StatsPage = () => {
   const [recordCount, setRecordCount] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [selectedStats, setSelectedStats] = useState({
+    tables: false,
+    columns: false,
+    pk: false,
+    fk: false,
+    uk: false,
+    records: false,
+  });
+
   useEffect(() => {
     api.get("/databases/")
       .then((res) => setDatabases(res.data))
       .catch(console.error);
   }, []);
 
-  const fetchTableCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+  const fetchers = {
+    tables: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/tables/count`);
       setTableCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching table count:", err);
-      setTableCount(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchColumnCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+    },
+    columns: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/columns/count`);
       setColumnCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching column count:", err);
-      setColumnCount(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPkCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+    },
+    pk: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/keys/primary/count`);
       setPkCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching primary key count:", err);
-      setPkCount(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFkCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+    },
+    fk: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/keys/foreign/count`);
       setFkCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching foreign key count:", err);
-      setFkCount(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUkCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+    },
+    uk: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/keys/unique/count`);
       setUkCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching unique key count:", err);
-      setUkCount(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchRecordCount = async (dbId) => {
-    if (!dbId) return;
-    setLoading(true);
-    try {
+    },
+    records: async (dbId) => {
       const res = await api.get(`/databases/${dbId}/records/count`);
       setRecordCount(res.data.count);
-    } catch (err) {
-      console.error("Error fetching record count:", err);
-      setRecordCount(null);
-    } finally {
-      setLoading(false);
+    },
+  };
+
+  // when user selects a new database
+  const handleSelectChange = async (dbId) => {
+    setSelectedDb(dbId);
+
+    setTableCount(null);
+    setColumnCount(null);
+    setPkCount(null);
+    setFkCount(null);
+    setUkCount(null);
+    setRecordCount(null);
+
+    if (!dbId) return;
+
+    // fetch all currently selected stats for new database
+    const activeStats = Object.keys(selectedStats).filter((key) => selectedStats[key]);
+    if (activeStats.length > 0) {
+      setLoading(true);
+      try {
+        await Promise.all(activeStats.map((key) => fetchers[key](dbId)));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
+  // when user toggles a stat checkbox
+  const handleStatsChange = async (newSelectedStats) => {
+    if (!selectedDb) {
+      setSelectedStats(newSelectedStats);
+      return;
+    }
 
-  const handleSelectChange = (dbId) => {
-    setSelectedDb(dbId);
-    fetchTableCount(dbId);
-    fetchColumnCount(dbId);
-    fetchPkCount(dbId);
-    fetchFkCount(dbId);
-    fetchUkCount(dbId);
-    fetchRecordCount(dbId);
+    // determine which stat was just toggled
+    const changedKey = Object.keys(newSelectedStats).find(
+      (key) => newSelectedStats[key] !== selectedStats[key]
+    );
+
+    setSelectedStats(newSelectedStats);
+
+    if (changedKey) {
+      if (newSelectedStats[changedKey]) {
+        // checkbox checked - fetch new data
+        setLoading(true);
+        try {
+          await fetchers[changedKey](selectedDb);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // checkbox unchecked - clear the value immediately (looks ugly rn. maybe find way to refactor)
+        switch (changedKey) {
+          case "tables":
+            setTableCount(null);
+            break;
+          case "columns":
+            setColumnCount(null);
+            break;
+          case "pk":
+            setPkCount(null);
+            break;
+          case "fk":
+            setFkCount(null);
+            break;
+          case "uk":
+            setUkCount(null);
+            break;
+          case "records":
+            setRecordCount(null);
+            break;
+        }
+      }
+    }
   };
 
   return (
     <div>
-        <h2 className="text-2xl font-semibold">Statistics</h2>
-            <div className="database-container">
-            <DatabaseSelector
-                databases={databases}
-                selectedDb={selectedDb}
-                onSelect={handleSelectChange}
-            />
-            <DatabaseStats
-                loading={loading}
-                tableCount={tableCount}
-                columnCount={columnCount}
-                pkCount={pkCount}
-                fkCount={fkCount}
-                ukCount={ukCount}
-                recordCount={recordCount}
-                selectedDb={selectedDb}
-            />
+      <h2 className="text-2xl font-semibold">Statistics</h2>
+
+      <div className="database-container" style={{ display: "flex", gap: "2rem" }}>
+        <div>
+          <DatabaseSelector
+            databases={databases}
+            selectedDb={selectedDb}
+            onSelect={handleSelectChange}
+          />
+          <StatsSelector
+            selectedStats={selectedStats}
+            onChange={handleStatsChange}
+          />
         </div>
+
+        <DatabaseStats
+          loading={loading}
+          tableCount={tableCount}
+          columnCount={columnCount}
+          pkCount={pkCount}
+          fkCount={fkCount}
+          ukCount={ukCount}
+          recordCount={recordCount}
+          selectedDb={selectedDb}
+          selectedStats={selectedStats}
+        />
+      </div>
     </div>
   );
 };
