@@ -135,6 +135,39 @@ const StatsPage = () => {
     }
   };
 
+  const handleSaveStats = async () => {
+    if (!selectedDb) {
+      alert("Select a database first.");
+      return;
+    }
+
+    const payload = {
+      db_id: selectedDb,
+      tables_count: selectedStats.tables ? tableCount : null,
+      columns_count: selectedStats.columns ? columnCount : null,
+      pk_count: selectedStats.pk ? pkCount : null,
+      fk_count: selectedStats.fk ? fkCount : null,
+      uk_count: selectedStats.uk ? ukCount : null,
+      records_count: selectedStats.records ? recordCount : null,
+    };
+
+    // ensure user selected at least 1 stat
+    const anySelected = Object.values(selectedStats).some((v) => v);
+    if (!anySelected) {
+      alert("Select at least one statistic.");
+      return;
+    }
+
+    try {
+      console.log(payload);
+      await api.post("/timestamps/save", payload);
+      alert("Statistics saved!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save statistics");
+    }
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-semibold">Statistics</h2>
@@ -164,6 +197,12 @@ const StatsPage = () => {
           selectedStats={selectedStats}
         />
       </div>
+      <button
+          className="bg-green-600 text-white px-4 py-2 rounded mt-4"
+          onClick={handleSaveStats}
+        >
+          Save statistics
+        </button>
     </div>
   );
 };
