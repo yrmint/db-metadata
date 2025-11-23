@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ImportPage from "./pages/ImportPage";
 import StatsPage from "./pages/StatsPage";
+import TimestampsPage from "./pages/TimestampsPage";
 
 const App = () => {
   return (
@@ -15,6 +16,9 @@ const App = () => {
             <Link to="/stats">
               <button>Statistics</button>
             </Link>
+            <Link to="/timestamps">
+              <button>Timestamps</button>
+            </Link>
           </nav>
         </header>
 
@@ -22,6 +26,7 @@ const App = () => {
           <Routes>
             <Route path="/import" element={<ImportPage />} />
             <Route path="/stats" element={<StatsPage />} />
+            <Route path="/timestamps" element={<TimestampsPage />} />
           </Routes>
         </main>
       </div>
