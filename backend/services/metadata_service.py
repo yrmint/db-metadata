@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from backend.core.db import get_connection
 from mysql.connector import Error
 
