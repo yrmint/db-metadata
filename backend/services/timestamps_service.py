@@ -40,3 +40,42 @@ def save_timestamp(stats_item):
     )
 
     return {"status": "ok"}
+
+def get_all_timestamps():
+    client = InfluxDBClient(
+        url=influxdb_config.INFLUX_URL,
+        token=influxdb_config.INFLUX_TOKEN,
+        org=influxdb_config.INFLUX_ORG
+    )
+    query_api = client.query_api()
+
+    query = f'''
+        from(bucket: "{influxdb_config.INFLUX_BUCKET}")
+            |> range(start: 0)
+            |> filter(fn: (r) => r._measurement == "db_stats")
+        '''
+
+    tables = query_api.query(org=influxdb_config.INFLUX_ORG, query=query)
+
+    results = {}
+
+    for table in tables:
+        for record in table.records:
+            time = record.get_time().isoformat()
+
+            if time not in results:
+                results[time] = {
+                    "time": time,
+                    "db_id": record.values.get("db_id"),
+                    "db_name": record.values.get("db_name"),
+                    "tables_count": None,
+                    "columns_count": None,
+                    "pk_count": None,
+                    "fk_count": None,
+                    "uk_count": None,
+                    "records_count": None
+                }
+
+            results[time][record["_field"]] = record["_value"]
+
+    return list(results.values())
